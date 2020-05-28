@@ -1,0 +1,174 @@
+
+arkanoid_spritesheet.png
+size: 1024,64
+format: RGBA8888
+filter: Nearest,Nearest
+repeat: none
+ball
+  rotate: false
+  xy: 492, 2
+  size: 16, 16
+  orig: 16, 16
+  offset: 0, 0
+  index: -1
+ball_anim
+  rotate: false
+  xy: 510, 2
+  size: 16, 16
+  orig: 16, 16
+  offset: 0, 0
+  index: 1
+ball_anim
+  rotate: false
+  xy: 528, 2
+  size: 16, 16
+  orig: 16, 16
+  offset: 0, 0
+  index: 2
+ball_anim
+  rotate: false
+  xy: 546, 2
+  size: 16, 16
+  orig: 16, 16
+  offset: 0, 0
+  index: 3
+ball_anim
+  rotate: false
+  xy: 564, 2
+  size: 16, 16
+  orig: 16, 16
+  offset: 0, 0
+  index: 4
+brick
+  rotate: false
+  xy: 294, 20
+  size: 64, 32
+  orig: 64, 32
+  offset: 0, 0
+  index: 1
+brick
+  rotate: false
+  xy: 360, 20
+  size: 64, 32
+  orig: 64, 32
+  offset: 0, 0
+  index: 2
+brick
+  rotate: false
+  xy: 426, 20
+  size: 64, 32
+  orig: 64, 32
+  offset: 0, 0
+  index: 3
+brick
+  rotate: false
+  xy: 492, 20
+  size: 64, 32
+  orig: 64, 32
+  offset: 0, 0
+  index: 4
+brick
+  rotate: false
+  xy: 558, 20
+  size: 64, 32
+  orig: 64, 32
+  offset: 0, 0
+  index: 5
+brick_extra
+  rotate: false
+  xy: 624, 20
+  size: 64, 32
+  orig: 64, 32
+  offset: 0, 0
+  index: 1
+brick_extra
+  rotate: false
+  xy: 690, 20
+  size: 64, 32
+  orig: 64, 32
+  offset: 0, 0
+  index: 2
+brick_extra
+  rotate: false
+  xy: 756, 20
+  size: 64, 32
+  orig: 64, 32
+  offset: 0, 0
+  index: 3
+brick_extra
+  rotate: false
+  xy: 822, 20
+  size: 64, 32
+  orig: 64, 32
+  offset: 0, 0
+  index: 4
+brick_extra
+  rotate: false
+  xy: 888, 20
+  size: 64, 32
+  orig: 64, 32
+  offset: 0, 0
+  index: 5
+brick_extra
+  rotate: false
+  xy: 954, 20
+  size: 64, 32
+  orig: 64, 32
+  offset: 0, 0
+  index: 6
+lives
+  rotate: false
+  xy: 2, 2
+  size: 96, 16
+  orig: 96, 16
+  offset: 0, 0
+  index: 1
+lives
+  rotate: false
+  xy: 100, 2
+  size: 96, 16
+  orig: 96, 16
+  offset: 0, 0
+  index: 2
+lives
+  rotate: false
+  xy: 198, 2
+  size: 96, 16
+  orig: 96, 16
+  offset: 0, 0
+  index: 3
+lives
+  rotate: false
+  xy: 296, 2
+  size: 96, 16
+  orig: 96, 16
+  offset: 0, 0
+  index: 4
+lives
+  rotate: false
+  xy: 394, 2
+  size: 96, 16
+  orig: 96, 16
+  offset: 0, 0
+  index: 5
+paddle
+  rotate: false
+  xy: 164, 20
+  size: 128, 32
+  orig: 128, 32
+  offset: 0, 0
+  index: -1
+paddle_long
+  rotate: false
+  xy: 2, 20
+  size: 160, 32
+  orig: 160, 32
+  offset: 0, 0
+  index: -1
+particles
+  rotate: false
+  xy: 582, 2
+  size: 16, 16
+  orig: 16, 16
+  offset: 0, 0
+  index: -1

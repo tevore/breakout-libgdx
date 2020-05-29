@@ -5,24 +5,21 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.*;
 import com.badlogic.gdx.utils.Array;
-import com.badlogic.gdx.utils.viewport.ExtendViewport;
 import com.mygdx.breakout.npc.Ball;
 import com.mygdx.breakout.npc.Brick;
 import com.mygdx.breakout.user.Paddle;
 import com.mygdx.breakout.utils.BreakoutContactListener;
 
 
-//TODO BRAND NEW TODOs
-/* TODOs
-    Fix physics values for balls, paddle, bricks
+/* TODO
+    Review physics values for balls, paddle, bricks
     attach user data to Paddle generation
-    find a max velocity?
+    Figure out why ball slows down with no friction
  */
 
 public class GameScreen implements Screen {
@@ -31,7 +28,7 @@ public class GameScreen implements Screen {
     int gameViewWidth = 200;
     int gameViewHeight = 150;
 
-    int paddleMoveSpeed = 75;
+    int paddleMoveSpeed = 50;
     float restitution = 0.45f;
 
     TextureAtlas textureAtlas;
@@ -84,13 +81,9 @@ public class GameScreen implements Screen {
         leftWall = textureAtlas.createSprite("brick");
         ceiling = textureAtlas.createSprite("brick");
 
-
-
         camera = new OrthographicCamera();
         //sets camera centered on width and height args
         camera.setToOrtho(false, gameViewWidth, gameViewHeight);
-
-
 
         setupBricks();
 
@@ -213,7 +206,16 @@ public class GameScreen implements Screen {
             ball.setLaunched(true);
         }
 
+        //check if ball went out of bounds and reset
+        if(ball.getBody().getPosition().y < -10) {
+            System.out.println("BALL IS OUT OF BOUNDS. Current y =  " + ball.getBody().getPosition().y);
+            ball.getBody().setLinearVelocity(0, 0);
+            ball.setLaunched(false);
+            ball.getBody().setTransform(pad.getX()+10, pad.getY()+6, ball.getBody().getAngle());
+        }
+
         world.step(Gdx.graphics.getDeltaTime(), 6, 2);
+
 
         contacts.addAll(world.getContactList());
 

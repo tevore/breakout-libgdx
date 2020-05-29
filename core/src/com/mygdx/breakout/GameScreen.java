@@ -479,7 +479,7 @@ public class GameScreen implements Screen {
     private void setupBricks() {
 
         float rowAdvanceXSpace = 100;
-        float rowAdvanceYSpace = 55;
+        float rowAdvanceYSpace = 100;
 
 
 

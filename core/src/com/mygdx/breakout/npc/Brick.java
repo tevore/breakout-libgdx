@@ -1,6 +1,8 @@
 package com.mygdx.breakout.npc;
 
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.Sprite;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.PolygonShape;
 
@@ -8,12 +10,12 @@ public class Brick {
 
     private float xPos;
     private float yPos;
-    private Texture brickImage;
+    private Sprite brickImage;
     private boolean destroyed;
     private Body body;
     private PolygonShape shape;
 
-    public Brick(float xPos, float yPos, Texture brickImage, boolean destroyed) {
+    public Brick(float xPos, float yPos, Sprite brickImage, boolean destroyed) {
         this.xPos = xPos;
         this.yPos = yPos;
         this.brickImage = brickImage;
@@ -36,11 +38,11 @@ public class Brick {
         this.yPos = yPos;
     }
 
-    public Texture getBrickImage() {
+    public Sprite getBrickImage() {
         return brickImage;
     }
 
-    public void setBrickImage(Texture brickImage) {
+    public void setBrickImage(Sprite brickImage) {
         this.brickImage = brickImage;
     }
 

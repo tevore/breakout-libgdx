@@ -17,24 +17,26 @@ import com.mygdx.breakout.npc.Brick;
 import com.mygdx.breakout.user.Paddle;
 import com.mygdx.breakout.utils.BreakoutContactListener;
 
-import static com.badlogic.gdx.physics.box2d.World.setVelocityThreshold;
+
+//TODO BRAND NEW TODOs
+/* TODOs
+    Fix physics values for balls, paddle, bricks
+    create bricks
+    add bricks and ball via texture atlas
+    create wall bounds with some of the extra images stretched out?
+    attach user data to Ball/Paddle/Brick generation
+ */
 
 //TODO add velocity every time the ball hits something
 public class GameScreen implements Screen {
     final Breakout game;
 
-//    int viewportWidth = 1280; //800
-//    double viewportWidth
-//    int viewportHeight = 1024; //600
-    int paddleMoveSpeed = 50; //40m?
-//    float ppm = 32;
+    int gameViewWidth = 200;
+    int gameViewHeight = 200;
+
+    int paddleMoveSpeed = 50;
 
     TextureAtlas textureAtlas;
-
-    Texture ballImage;
-    Texture paddleImage;
-    //TODO add more brick images later to an array of Textures to randomly choose colors
-    Texture blueBrickImage;
 
     OrthographicCamera camera;
 
@@ -49,54 +51,59 @@ public class GameScreen implements Screen {
     PolygonShape paddleShape;
     Body paddleBody;
     Body circleBody;
-    PolygonShape leftWallShape;
-    PolygonShape rightWallShape;
-    PolygonShape ceilingShape;
-    Body leftWallBody;
-    Body rightWallBody;
-    Body ceilingBody;
+
 
     Array<Body> removables;
     Array<Contact> contacts;
     BreakoutContactListener breakoutContactListener;
+
+
     Sprite pad;
     PolygonShape padShape;
     Body padBody;
-    ExtendViewport extendViewport;
 
-    float SCALE = 0.05f;
+    Sprite bola;
+    CircleShape bolaShape;
+    Body bolaBody;
+
+    Sprite rightWall;
+    PolygonShape rightWallShape;
+    Body rightWallBody;
+
+    Sprite leftWall;
+    PolygonShape leftWallShape;
+    Body leftWallBody;
+
+    Sprite ceiling;
+    PolygonShape ceilingShape;
+    Body ceilingBody;
 
     public GameScreen(Breakout game) {
         this.game = game;
 
         textureAtlas = new TextureAtlas("arkanoid_spritesheet.atlas");
         pad = textureAtlas.createSprite("paddle");
+        bola = textureAtlas.createSprite("ball");
+        rightWall = textureAtlas.createSprite("brick");
+        leftWall = textureAtlas.createSprite("brick");
+        ceiling = textureAtlas.createSprite("brick");
 
 
 
-
-        //TODO move this Texture instantiation to individual data classes
-        ballImage = new Texture(Gdx.files.internal("ball.png"));
-        paddleImage = new Texture(Gdx.files.internal("paddle.png"));
-        blueBrickImage = new Texture(Gdx.files.internal("blue_brick.png"));
-
-//        camera = new OrthographicCamera(viewportWidth, viewportHeight);
         camera = new OrthographicCamera();
         //sets camera centered on width and height args
-        camera.setToOrtho(false, 200, 200);
-
-//        extendViewport = new ExtendViewport(viewportWidth, viewportHeight, camera);
-//        extendViewport = new ExtendViewport(50, 50, camera);
+        camera.setToOrtho(false, gameViewWidth, gameViewHeight);
 
 
-//        setupBricks();
+
+        setupBricks();
 
         //set up a world for physics
         Box2D.init();
 
         world = new World(new Vector2(0, 0), true);
         world.setContinuousPhysics(true);
-//        World.setVelocityThreshold(0f);
+        World.setVelocityThreshold(0);
         breakoutContactListener = new BreakoutContactListener();
         world.setContactListener(breakoutContactListener);
         debugRenderer = new Box2DDebugRenderer();
@@ -104,7 +111,7 @@ public class GameScreen implements Screen {
 //        setUpPaddle();
 //        setUpBall();
 
-//        setupBrickPhysics();
+        setupBrickPhysics();
 
         setUpBoundaries();
 
@@ -128,73 +135,115 @@ public class GameScreen implements Screen {
 
         FixtureDef fixtureDef = new FixtureDef();
         fixtureDef.shape = padShape;
-        fixtureDef.density = 1f;
+        fixtureDef.density = 8f;
         fixtureDef.friction = 0f;
-        fixtureDef.restitution = 5f;
+        fixtureDef.restitution = 1f;
 
 
         padBody.createFixture(fixtureDef);
         padShape.dispose();
 
+
+
+        bola.setPosition(50, 100);
+
+        BodyDef bolaBodyDef = new BodyDef();
+        bolaBodyDef.type = BodyDef.BodyType.DynamicBody;
+        //to not rotate around the axis
+//        bolaBodyDef.fixedRotation = true;
+        //TODO review this positional code
+        bolaBodyDef.position.set(bola.getX(), bola.getY()+2); //y was 20
+
+        bolaBody = world.createBody(bolaBodyDef);
+
+        bolaShape = new CircleShape();
+        //Useful for linking movement between rendered sprite and attached physics component
+//        padShape.setAsBox(9.5f, 2);
+        bolaShape.setRadius(1.5f);
+
+        FixtureDef fixtureDefBola = new FixtureDef();
+        fixtureDefBola.shape = bolaShape;
+        fixtureDefBola.density = 2.6f;
+        fixtureDefBola.friction = 0f;
+        fixtureDefBola.restitution = 1f;
+
+
+        bolaBody.createFixture(fixtureDefBola);
+        bolaShape.dispose();
+
+
+
     }
 
     private void setUpBoundaries() {
 
-//        //set up boundaries
-//        BodyDef rightWallBodyDef = new BodyDef();
-//        rightWallBodyDef.type = BodyDef.BodyType.StaticBody;
-//        rightWallBodyDef.position.set(100 + 100, 100/2);
-//
-//        rightWallBody = world.createBody(rightWallBodyDef);
-//
-//        rightWallShape = new PolygonShape();
-//        rightWallShape.setAsBox(100/8, 100);
-//
-//        FixtureDef rightWallFixtureDef = new FixtureDef();
-//        rightWallFixtureDef.shape = rightWallShape;
-//        rightWallFixtureDef.density = 0f;
-//        rightWallFixtureDef.friction = 0f;
-//        rightWallFixtureDef.restitution = 3.5f; // Make it bounce a little bit
-//
-//        rightWallBody.createFixture(rightWallFixtureDef);
-//
-//        //set up boundaries
-//        BodyDef leftWallBodyDef = new BodyDef();
-//        leftWallBodyDef.type = BodyDef.BodyType.StaticBody;
-//        leftWallBodyDef.position.set(-99, 100/2);
-//
-//        leftWallBody = world.createBody(leftWallBodyDef);
-//
-//        leftWallShape = new PolygonShape();
-//        leftWallShape.setAsBox(100/8, 100);
-//
-//        FixtureDef leftWallFixtureDef = new FixtureDef();
-//        leftWallFixtureDef.shape = leftWallShape;
-//        leftWallFixtureDef.density = 0f;
-//        leftWallFixtureDef.friction = 0f;
-//        leftWallFixtureDef.restitution = 3.5f; // Make it bounce a little bit
-//
-//        leftWallBody.createFixture(leftWallFixtureDef);
-//
-//        BodyDef ceilingBodyDef = new BodyDef();
-//        ceilingBodyDef.type = BodyDef.BodyType.StaticBody;
-//        ceilingBodyDef.position.set(100/2, 100+70);
-//
-//        ceilingBody = world.createBody(ceilingBodyDef);
-//
-//        ceilingShape = new PolygonShape();
-//        ceilingShape.setAsBox(100, 100/8);
-//
-//
-//        FixtureDef ceilingFixtureDef = new FixtureDef();
-//        ceilingFixtureDef.shape = ceilingShape;
-//        ceilingFixtureDef.density = 0f;
-//        ceilingFixtureDef.friction = 0f;
-//        ceilingFixtureDef.restitution = 3.5f; // Make it bounce a little bit
-//
-//        ceilingBody.createFixture(ceilingFixtureDef);
+//        set up boundaries
+        //right wall
+        rightWall.setPosition(gameViewWidth, 0);
+
+        BodyDef rightWallDef = new BodyDef();
+        rightWallDef.type = BodyDef.BodyType.StaticBody;
+        rightWallDef.position.set(rightWall.getX(), rightWall.getY()); //y was 20
+
+        rightWallBody = world.createBody(rightWallDef);
+
+        rightWallShape = new PolygonShape();
+        rightWallShape.setAsBox(2f, gameViewHeight);
+
+        FixtureDef fixtureDefRW = new FixtureDef();
+        fixtureDefRW.shape = rightWallShape;
+        fixtureDefRW.density = 100f;
+        fixtureDefRW.friction = 0f;
+        fixtureDefRW.restitution = 1f;
 
 
+        rightWallBody.createFixture(fixtureDefRW);
+        rightWallShape.dispose();
+
+        //left wall
+        leftWall.setPosition(0, 0);
+
+        BodyDef leftWallDef = new BodyDef();
+        leftWallDef.type = BodyDef.BodyType.StaticBody;
+        leftWallDef.position.set(leftWall.getX(), leftWall.getY()); //y was 20
+
+        leftWallBody = world.createBody(leftWallDef);
+
+        leftWallShape = new PolygonShape();
+        leftWallShape.setAsBox(2f, 200f);
+
+        FixtureDef fixtureDefLW = new FixtureDef();
+        fixtureDefLW.shape = leftWallShape;
+        fixtureDefLW.density = 100f;
+        fixtureDefLW.friction = 0f;
+        fixtureDefLW.restitution = 1f;
+
+
+        leftWallBody.createFixture(fixtureDefLW);
+        leftWallShape.dispose();
+
+
+        //ceiling
+        ceiling.setPosition(0, gameViewHeight);
+
+        BodyDef ceilingDef = new BodyDef();
+        ceilingDef.type = BodyDef.BodyType.StaticBody;
+        ceilingDef.position.set(ceiling.getX(), ceiling.getY()); //y was 20
+
+        ceilingBody = world.createBody(ceilingDef);
+
+        ceilingShape = new PolygonShape();
+        ceilingShape.setAsBox(gameViewWidth, 2);
+
+        FixtureDef fixtureDefCeil = new FixtureDef();
+        fixtureDefCeil.shape = ceilingShape;
+        fixtureDefCeil.density = 100f;
+        fixtureDefCeil.friction = 0f;
+        fixtureDefCeil.restitution = 1f;
+
+
+        ceilingBody.createFixture(fixtureDefCeil);
+        ceilingShape.dispose();
 
     }
 
@@ -236,6 +285,11 @@ public class GameScreen implements Screen {
 //            if(!ball.isLaunched()) {
 //                circleBody.setLinearVelocity(paddleMoveSpeed, 0.0f);
 //            }
+        }
+
+        //TESTING PURPOSES
+        if(Gdx.input.isKeyPressed(Input.Keys.SPACE)) {
+            bolaBody.applyLinearImpulse(new Vector2(0, 100f), new Vector2(bolaBody.getPosition().x, bolaBody.getPosition().y), true);
         }
 //
 //        //TODO review this instant addition of velocity
@@ -321,6 +375,11 @@ public class GameScreen implements Screen {
         pad.setPosition(padBody.getPosition().x - 9.5f, padBody.getPosition().y - 2);
         pad.draw(game.batch);
 
+        bola.setSize(4, 4);
+        bola.setOriginCenter();
+        bola.setPosition(bolaBody.getPosition().x, bolaBody.getPosition().y);
+        bola.draw(game.batch);
+
         game.batch.end();
 
 
@@ -337,25 +396,19 @@ public class GameScreen implements Screen {
                   if(brickCoordinateArray[i][j].getBrickImage() != null) {
                       BodyDef brickBodyDef = new BodyDef();
                       brickBodyDef.type = BodyDef.BodyType.StaticBody;
-                      brickBodyDef.position.set(
-                              brickCoordinateArray[i][j].getXPos() + ((brickCoordinateArray[i][j].getBrickImage().getWidth()/4)/2),
-                              brickCoordinateArray[i][j].getYPos() + ((brickCoordinateArray[i][j].getBrickImage().getHeight()/4)/2));
-
-
+                      brickBodyDef.position.set(brickCoordinateArray[i][j].getXPos(), brickCoordinateArray[i][j].getYPos());
                       Body brickBody = world.createBody(brickBodyDef);
                       brickCoordinateArray[i][j].setBody(brickBody);
                       brickBody.setUserData(brickCoordinateArray[i][j]);
 
                       PolygonShape brickShape = new PolygonShape();
                       brickCoordinateArray[i][j].setShape(brickShape);
-                      brickShape.setAsBox(
-                              brickCoordinateArray[i][j].getBrickImage().getWidth()/8,
-                              brickCoordinateArray[i][j].getBrickImage().getHeight()/8);
+                      brickShape.setAsBox(5, 2);
 
                       FixtureDef fixtureDef = new FixtureDef();
                       fixtureDef.shape = brickShape;
-                      fixtureDef.density = 20f;
-                      fixtureDef.friction = 10f;
+                      fixtureDef.density = 30f;
+                      fixtureDef.friction = 0f;
                       fixtureDef.restitution = 5f;
 
                       brickBody.createFixture(fixtureDef);
@@ -391,7 +444,7 @@ public class GameScreen implements Screen {
         // Create our fixture and attach it to the body
         circleBody.createFixture(fixtureDef);
 
-        ball = new Ball(circleBody.getPosition().x, circleBody.getPosition().y, ballImage, false);
+//        ball = new Ball(circleBody.getPosition().x, circleBody.getPosition().y, ballImage, false);
         circleBody.setUserData(ball);
 
     }
@@ -403,13 +456,13 @@ public class GameScreen implements Screen {
         //to not rotate around the axis
         paddleBodyDef.fixedRotation = true;
         //TODO review this positional code
-        paddleBodyDef.position.set(new Vector2((100/2 - ((paddleImage.getWidth()/8)/2)) , 1)); //y was 20
+//        paddleBodyDef.position.set(new Vector2((100/2 - ((paddleImage.getWidth()/8)/2)) , 1)); //y was 20
 
         paddleBody = world.createBody(paddleBodyDef);
 
         paddleShape = new PolygonShape();
         //Useful for linking movement between rendered sprite and attached physics component
-        paddleShape.setAsBox(paddleImage.getWidth()/8, paddleImage.getHeight()/8);
+//        paddleShape.setAsBox(paddleImage.getWidth()/8, paddleImage.getHeight()/8);
 
         FixtureDef fixtureDef = new FixtureDef();
         fixtureDef.shape = paddleShape;
@@ -419,17 +472,14 @@ public class GameScreen implements Screen {
 
         paddleBody.createFixture(fixtureDef);
 
-        paddle = new Paddle(paddleBody.getPosition().x, paddleBody.getPosition().y, paddleImage);
+//        paddle = new Paddle(paddleBody.getPosition().x, paddleBody.getPosition().y, paddleImage);
         paddleBody.setUserData(paddle);
     }
 
     private void setupBricks() {
 
-        //Seems like it should be slice = desiredBrickRowCount+1.5
-        float slice = 7f;
-        float rowEdgeWidth = 100/slice;
-        float rowAdvanceXSpace = 0;
-        float rowAdvanceYSpace = 100/3;
+        float rowAdvanceXSpace = 100;
+        float rowAdvanceYSpace = 55;
 
 
 
@@ -437,15 +487,15 @@ public class GameScreen implements Screen {
         for(int i = 0; i < brickCoordinateArray.length; i++) {
             for(int j = 0; j < brickCoordinateArray[0].length; j++) {
                 if((int)Math.round(Math.random()) == 1) {
-                    brickCoordinateArray[i][j] = new Brick(rowEdgeWidth + rowAdvanceXSpace, rowAdvanceYSpace,
-                            new Texture(Gdx.files.internal("blue_brick.png")), false);
+                    brickCoordinateArray[i][j] = new Brick(rowAdvanceXSpace, rowAdvanceYSpace,
+                            textureAtlas.createSprite("brick"), false);
                 } else {
-                    brickCoordinateArray[i][j] = new Brick(0,0, null, true);
+                    brickCoordinateArray[i][j] = new Brick(rowAdvanceXSpace, rowAdvanceYSpace, null, true);
                 }
-                rowAdvanceXSpace += blueBrickImage.getWidth() / 8;
+                rowAdvanceXSpace += 10;
             }
-            rowAdvanceXSpace = 0;
-            rowAdvanceYSpace += blueBrickImage.getHeight()/8;
+            rowAdvanceXSpace = 30;
+            rowAdvanceYSpace += 4;
         }
 
 
@@ -489,14 +539,13 @@ public class GameScreen implements Screen {
     public void dispose() {
 
         textureAtlas.dispose();
-        ballImage.dispose();
-        paddleImage.dispose();
-        blueBrickImage.dispose();
+//        ballImage.dispose();
+//        paddleImage.dispose();
+//        blueBrickImage.dispose();
 
-        //dispose of all images in brick coordinate array
+        //dispose of all shapes in brick coordinate array
         for(int i = 0; i < brickCoordinateArray.length; i++) {
             for(int j = 0; j < brickCoordinateArray[0].length; j++) {
-                brickCoordinateArray[i][j].getBrickImage().dispose();
                 brickCoordinateArray[i][j].getShape().dispose();
             }
         }

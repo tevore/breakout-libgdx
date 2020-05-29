@@ -1,6 +1,7 @@
 package com.mygdx.breakout.npc;
 
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.PolygonShape;
 
@@ -8,15 +9,16 @@ public class Ball {
 
     private float xPos;
     private float yPos;
-    private Texture ballImage;
+    private Sprite ballImage;
     private Body body;
     private PolygonShape shape;
     private boolean launched;
 
-    public Ball(float xPos, float yPos, Texture ballImage, boolean launched) {
+    public Ball(float xPos, float yPos, Sprite ballImage, Body body, boolean launched) {
         this.xPos = xPos;
         this.yPos = yPos;
         this.ballImage = ballImage;
+        this.body = body;
         this.launched = launched;
     }
 
@@ -36,11 +38,11 @@ public class Ball {
         this.yPos = yPos;
     }
 
-    public Texture getBallImage() {
+    public Sprite getBallImage() {
         return ballImage;
     }
 
-    public void setBallImage(Texture ballImage) {
+    public void setBallImage(Sprite ballImage) {
         this.ballImage = ballImage;
     }
 

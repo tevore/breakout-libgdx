@@ -21,20 +21,18 @@ import com.mygdx.breakout.utils.BreakoutContactListener;
 //TODO BRAND NEW TODOs
 /* TODOs
     Fix physics values for balls, paddle, bricks
-    create bricks
-    add bricks and ball via texture atlas
-    create wall bounds with some of the extra images stretched out?
-    attach user data to Ball/Paddle/Brick generation
+    attach user data to Paddle generation
+    find a max velocity?
  */
 
-//TODO add velocity every time the ball hits something
 public class GameScreen implements Screen {
     final Breakout game;
 
     int gameViewWidth = 200;
-    int gameViewHeight = 200;
+    int gameViewHeight = 150;
 
-    int paddleMoveSpeed = 50;
+    int paddleMoveSpeed = 75;
+    float restitution = 0.45f;
 
     TextureAtlas textureAtlas;
 
@@ -42,15 +40,13 @@ public class GameScreen implements Screen {
 
     Ball ball;
     Paddle paddle;
-    Brick[][] brickCoordinateArray = new Brick[8][6];
+    Brick[][] brickCoordinateArray = new Brick[8][8];
 
     World world;
     Box2DDebugRenderer debugRenderer;
 
     CircleShape circle;
     PolygonShape paddleShape;
-    Body paddleBody;
-    Body circleBody;
 
 
     Array<Body> removables;
@@ -108,8 +104,8 @@ public class GameScreen implements Screen {
         world.setContactListener(breakoutContactListener);
         debugRenderer = new Box2DDebugRenderer();
 
-//        setUpPaddle();
-//        setUpBall();
+        setUpPaddle();
+        setUpBall();
 
         setupBrickPhysics();
 
@@ -118,65 +114,9 @@ public class GameScreen implements Screen {
         removables = new Array<>();
         contacts = new Array<>();
 
-        pad.setPosition(50, 20);
-
-        BodyDef padBodyDef = new BodyDef();
-        padBodyDef.type = BodyDef.BodyType.KinematicBody;
-        //to not rotate around the axis
-        padBodyDef.fixedRotation = true;
-        //TODO review this positional code
-        padBodyDef.position.set(pad.getX(), pad.getY()+2); //y was 20
-
-        padBody = world.createBody(padBodyDef);
-
-        padShape = new PolygonShape();
-        //Useful for linking movement between rendered sprite and attached physics component
-        padShape.setAsBox(9.5f, 2);
-
-        FixtureDef fixtureDef = new FixtureDef();
-        fixtureDef.shape = padShape;
-        fixtureDef.density = 8f;
-        fixtureDef.friction = 0f;
-        fixtureDef.restitution = 1f;
-
-
-        padBody.createFixture(fixtureDef);
-        padShape.dispose();
-
-
-
-        bola.setPosition(50, 100);
-
-        BodyDef bolaBodyDef = new BodyDef();
-        bolaBodyDef.type = BodyDef.BodyType.DynamicBody;
-        //to not rotate around the axis
-//        bolaBodyDef.fixedRotation = true;
-        //TODO review this positional code
-        bolaBodyDef.position.set(bola.getX(), bola.getY()+2); //y was 20
-
-        bolaBody = world.createBody(bolaBodyDef);
-
-        bolaShape = new CircleShape();
-        //Useful for linking movement between rendered sprite and attached physics component
-//        padShape.setAsBox(9.5f, 2);
-        bolaShape.setRadius(1.5f);
-
-        FixtureDef fixtureDefBola = new FixtureDef();
-        fixtureDefBola.shape = bolaShape;
-        fixtureDefBola.density = 2.6f;
-        fixtureDefBola.friction = 0f;
-        fixtureDefBola.restitution = 1f;
-
-
-        bolaBody.createFixture(fixtureDefBola);
-        bolaShape.dispose();
-
-
-
     }
 
     private void setUpBoundaries() {
-
 //        set up boundaries
         //right wall
         rightWall.setPosition(gameViewWidth, 0);
@@ -194,8 +134,7 @@ public class GameScreen implements Screen {
         fixtureDefRW.shape = rightWallShape;
         fixtureDefRW.density = 100f;
         fixtureDefRW.friction = 0f;
-        fixtureDefRW.restitution = 1f;
-
+        fixtureDefRW.restitution = restitution;
 
         rightWallBody.createFixture(fixtureDefRW);
         rightWallShape.dispose();
@@ -216,12 +155,10 @@ public class GameScreen implements Screen {
         fixtureDefLW.shape = leftWallShape;
         fixtureDefLW.density = 100f;
         fixtureDefLW.friction = 0f;
-        fixtureDefLW.restitution = 1f;
-
+        fixtureDefLW.restitution = restitution;
 
         leftWallBody.createFixture(fixtureDefLW);
         leftWallShape.dispose();
-
 
         //ceiling
         ceiling.setPosition(0, gameViewHeight);
@@ -239,87 +176,46 @@ public class GameScreen implements Screen {
         fixtureDefCeil.shape = ceilingShape;
         fixtureDefCeil.density = 100f;
         fixtureDefCeil.friction = 0f;
-        fixtureDefCeil.restitution = 1f;
-
+        fixtureDefCeil.restitution = restitution;
 
         ceilingBody.createFixture(fixtureDefCeil);
         ceilingShape.dispose();
-
     }
 
     @Override
     public void show() {
-
     }
 
     @Override
     public void render(float delta) {
 
-
-//        world.set
-
-
-        //do physics here?
-//        paddleBody.setLinearVelocity(0, 0);
-//
-//        if(!ball.isLaunched()) {
-//            circleBody.setLinearVelocity(0, 0);
-//        }
-//
-//        //TODO do not apply linear velocity if paddle is colliding with a wall if ball is not launched
-
-//        padBody.setLinearVelocity(padBody.getLinearVelocity().x, 0);
         padBody.setLinearVelocity(0,0);
+        if(!ball.isLaunched()) {
+            ball.getBody().setLinearVelocity(0, 0);
+        }
 
         if (Gdx.input.isKeyPressed(Input.Keys.LEFT) ) {
-//            paddleBody.setLinearVelocity(-paddleMoveSpeed, 0.0f);
             padBody.setLinearVelocity(-paddleMoveSpeed, 0);
-//            if(!ball.isLaunched()) {
-//                circleBody.setLinearVelocity(-paddleMoveSpeed, 0.0f);
-//            }
+            if(!ball.isLaunched()) {
+                ball.getBody().setLinearVelocity(-paddleMoveSpeed, 0.0f);
+            }
         }
-//
+
         if (Gdx.input.isKeyPressed(Input.Keys.RIGHT)) {
-//            paddleBody.setLinearVelocity(paddleMoveSpeed, 0.0f);
             padBody.setLinearVelocity(paddleMoveSpeed, 0);
-//            if(!ball.isLaunched()) {
-//                circleBody.setLinearVelocity(paddleMoveSpeed, 0.0f);
-//            }
+            if(!ball.isLaunched()) {
+                ball.getBody().setLinearVelocity(paddleMoveSpeed, 0.0f);
+            }
         }
 
-        //TESTING PURPOSES
-        if(Gdx.input.isKeyPressed(Input.Keys.SPACE)) {
-            bolaBody.applyLinearImpulse(new Vector2(0, 100f), new Vector2(bolaBody.getPosition().x, bolaBody.getPosition().y), true);
+        if(Gdx.input.isKeyPressed(Input.Keys.SPACE) && !ball.isLaunched()) {
+            ball.getBody().applyLinearImpulse(new Vector2(padBody.getLinearVelocity().x, 200f), new Vector2(ball.getBody().getPosition().x, ball.getBody().getPosition().y), true);
+            ball.setLaunched(true);
         }
-//
-//        //TODO review this instant addition of velocity
-//        if(Gdx.input.isKeyPressed(Input.Keys.SPACE) && !ball.isLaunched()) {
-//            ball.setLaunched(true);
-//            circleBody.applyLinearImpulse(circleBody.getLinearVelocity().x * 2, 10f, 0, 0, true);
-//        }
-//
-//        //TODO apply force velocity in magnitude ever so slightly every tick
-//        if(ball.isLaunched() && circleBody.getLinearVelocity().y == 0) {
-//            System.out.println("Applying linear impulse!");
-//            circleBody.applyLinearImpulse(circleBody.getLinearVelocity().x, 10f, 0, 0, true);
-//        }
-//
-//
-//
-//
-//        paddle.setXPos(paddleBody.getPosition().x - ((paddleImage.getWidth()/4/2)));
-//        paddle.setYPos(paddleBody.getPosition().y - ((paddleImage.getHeight()/4/2)));
-//
-//        ball.setXPos(circleBody.getPosition().x - ((ballImage.getWidth() / 4) / 2)); //this alone sets the image and body together
-//        ball.setYPos(circleBody.getPosition().y - ((ballImage.getHeight()/4/2)));
-
-//TODO assign some impulse force in the opposite x direction when ball impacted
-
 
         world.step(Gdx.graphics.getDeltaTime(), 6, 2);
 
         contacts.addAll(world.getContactList());
-
 
         for(Body removable : breakoutContactListener.removables) {
             world.destroyBody(removable);
@@ -327,64 +223,60 @@ public class GameScreen implements Screen {
 
         breakoutContactListener.removables.clear();
 
-
-
-
         Gdx.gl.glClearColor(0, 0, 0f, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         // tell the camera to update its matrices.
         camera.update();
 
-        // tell the SpriteBatch to render in the
-        // coordinate system specified by the camera.
-//        game.batch.setProjectionMatrix(camera.combined);
-
         game.batch.begin();
 
-        //We divide the height and width of the image by 4 since it is rather large. hence, all calculations needs to go that way as well
+        //bricks
+        for (int i = 0; i < brickCoordinateArray.length; i++) {
+            for (int j = 0; j < brickCoordinateArray[0].length; j++) {
+                if (!brickCoordinateArray[i][j].isDestroyed()) {
+                    Sprite currentBrick = brickCoordinateArray[i][j].getBrickImage();
+                    Body currentBrickBody = brickCoordinateArray[i][j].getBody();
+                    currentBrick.setSize(20, 5);
+                    currentBrick.setPosition(currentBrickBody.getPosition().x-10, currentBrickBody.getPosition().y-2.5f);
+                    currentBrick.setOriginCenter();
+                    currentBrick.draw(game.batch);
+                }
+            }
+        }
 
-        //TODO review this positional code as well
-//        for (int i = 0; i < brickCoordinateArray.length; i++) {
-//            for (int j = 0; j < brickCoordinateArray[0].length; j++) {
-//                if (!brickCoordinateArray[i][j].isDestroyed()) {
-//                    game.batch.draw(
-//                            brickCoordinateArray[i][j].getBrickImage(),
-//                            brickCoordinateArray[i][j].getXPos(),
-//                            brickCoordinateArray[i][j].getYPos(),
-//                            brickCoordinateArray[i][j].getBrickImage().getWidth(),
-//                            brickCoordinateArray[i][j].getBrickImage().getHeight());
-//                }
-//
-//            }
-//        }
+        //walls
+        rightWall.setSize(2, gameViewHeight);
+        rightWall.setOriginCenter();
+        rightWall.setPosition(rightWallBody.getPosition().x, rightWallBody.getPosition().y);
+        rightWall.draw(game.batch);
 
+        leftWall.setSize(2, gameViewHeight);
+        leftWall.setOriginCenter();
+        leftWall.setPosition(leftWallBody.getPosition().x, leftWallBody.getPosition().y);
+        leftWall.draw(game.batch);
 
+        ceiling.setSize(gameViewWidth, 2);
+        ceiling.setOriginCenter();
+        ceiling.setPosition(ceilingBody.getPosition().x, ceilingBody.getPosition().y);
+        ceiling.draw(game.batch);
 
-//        game.batch.draw(paddleImage, paddle.getXPos(), paddle.getYPos(), paddleImage.getWidth() / 4, paddleImage.getHeight() / 4);
-//        game.batch.draw(paddleImage, paddle.getXPos(), paddle.getYPos(), paddleImage.getWidth(), paddleImage.getHeight());
-
-
-        //have the ball follow the paddle if it is not launched yet
-
-//        game.batch.draw(ballImage, ball.getXPos(), ball.getYPos(), ballImage.getWidth(), ballImage.getHeight());
-
+        //paddle
         pad.setSize(20, 5);
 
         pad.setOriginCenter();
         pad.setPosition(padBody.getPosition().x - 9.5f, padBody.getPosition().y - 2);
         pad.draw(game.batch);
 
-        bola.setSize(4, 4);
-        bola.setOriginCenter();
-        bola.setPosition(bolaBody.getPosition().x, bolaBody.getPosition().y);
-        bola.draw(game.batch);
+        //ball
+        ball.getBallImage().setSize(4, 4);
+        ball.getBallImage().setOriginCenter();
+        ball.getBallImage().setPosition(ball.getBody().getPosition().x - 2, ball.getBody().getPosition().y - 2);
+        ball.getBallImage().draw(game.batch);
 
         game.batch.end();
 
-
         debugRenderer.render(world, camera.combined);
-
     }
 
 
@@ -403,7 +295,7 @@ public class GameScreen implements Screen {
 
                       PolygonShape brickShape = new PolygonShape();
                       brickCoordinateArray[i][j].setShape(brickShape);
-                      brickShape.setAsBox(5, 2);
+                      brickShape.setAsBox(10, 2);
 
                       FixtureDef fixtureDef = new FixtureDef();
                       fixtureDef.shape = brickShape;
@@ -415,71 +307,73 @@ public class GameScreen implements Screen {
                   }
               }
           }
-        }
-
+    }
 
     private void setUpBall() {
 
-        // First we create a body definition
-        BodyDef circleBodyDef = new BodyDef();
-        // We set our body to dynamic, for something like ground which doesn't move we would set it to StaticBody
-        circleBodyDef.type = BodyDef.BodyType.DynamicBody;
-        // Set our body's starting position in the world
-        //TODO move to be centered on top of our paddle
-        circleBodyDef.position.set(paddleBody.getPosition().x, (paddleBody.getPosition().y + 25));
+        //set position to be same as paddle to start
+        bola.setPosition(pad.getX(), pad.getY() + 5);
 
-        // Create our body in the world using our body definition
-        circleBody = world.createBody(circleBodyDef);
-//        circleBody.setUserData();
+        BodyDef bolaBodyDef = new BodyDef();
+        bolaBodyDef.type = BodyDef.BodyType.DynamicBody;
+        //to not rotate around the axis
+//        bolaBodyDef.fixedRotation = true;
+        //TODO review this positional code
+        bolaBodyDef.position.set(bola.getX(), bola.getY()+2); //y was 20
 
-        circle = new CircleShape();
-        circle.setRadius(15f);
+        bolaBody = world.createBody(bolaBodyDef);
 
-        FixtureDef fixtureDef = new FixtureDef();
-        fixtureDef.shape = circle;
-        fixtureDef.density = 0f;
-        fixtureDef.friction = 0f;
-        fixtureDef.restitution = 5f;
+        bolaShape = new CircleShape();
+        //Useful for linking movement between rendered sprite and attached physics component
+//        padShape.setAsBox(9.5f, 2);
+        bolaShape.setRadius(1.5f);
 
-        // Create our fixture and attach it to the body
-        circleBody.createFixture(fixtureDef);
+        FixtureDef fixtureDefBola = new FixtureDef();
+        fixtureDefBola.shape = bolaShape;
+        fixtureDefBola.density = 0f;
+        fixtureDefBola.friction = 0f;
+        fixtureDefBola.restitution = restitution;
 
-//        ball = new Ball(circleBody.getPosition().x, circleBody.getPosition().y, ballImage, false);
-        circleBody.setUserData(ball);
+        bolaBody.createFixture(fixtureDefBola);
 
+        ball = new Ball(bola.getX(), bola.getY(), bola, bolaBody, false);
+        bolaBody.setUserData(ball);
+
+        bolaShape.dispose();
     }
 
     private void setUpPaddle() {
 
-        BodyDef paddleBodyDef = new BodyDef();
-        paddleBodyDef.type = BodyDef.BodyType.DynamicBody;
+        pad.setPosition(50, 20);
+
+        BodyDef padBodyDef = new BodyDef();
+        padBodyDef.type = BodyDef.BodyType.KinematicBody;
         //to not rotate around the axis
-        paddleBodyDef.fixedRotation = true;
+        padBodyDef.fixedRotation = true;
         //TODO review this positional code
-//        paddleBodyDef.position.set(new Vector2((100/2 - ((paddleImage.getWidth()/8)/2)) , 1)); //y was 20
+        padBodyDef.position.set(pad.getX(), pad.getY()+2); //y was 20
 
-        paddleBody = world.createBody(paddleBodyDef);
+        padBody = world.createBody(padBodyDef);
 
-        paddleShape = new PolygonShape();
+        padShape = new PolygonShape();
         //Useful for linking movement between rendered sprite and attached physics component
-//        paddleShape.setAsBox(paddleImage.getWidth()/8, paddleImage.getHeight()/8);
+        padShape.setAsBox(9.5f, 2);
 
         FixtureDef fixtureDef = new FixtureDef();
-        fixtureDef.shape = paddleShape;
-        fixtureDef.density = 100f;
+        fixtureDef.shape = padShape;
+        fixtureDef.density = 8f;
         fixtureDef.friction = 0f;
-        fixtureDef.restitution = 5f;
+        fixtureDef.restitution = restitution;
 
-        paddleBody.createFixture(fixtureDef);
 
-//        paddle = new Paddle(paddleBody.getPosition().x, paddleBody.getPosition().y, paddleImage);
-        paddleBody.setUserData(paddle);
+        padBody.createFixture(fixtureDef);
+        padShape.dispose();
     }
 
     private void setupBricks() {
 
-        float rowAdvanceXSpace = 100;
-        float rowAdvanceYSpace = 100;
+        float rowAdvanceXSpace = 30;
+        float rowAdvanceYSpace = gameViewHeight/2;
 
 
 
@@ -492,7 +386,7 @@ public class GameScreen implements Screen {
                 } else {
                     brickCoordinateArray[i][j] = new Brick(rowAdvanceXSpace, rowAdvanceYSpace, null, true);
                 }
-                rowAdvanceXSpace += 10;
+                rowAdvanceXSpace += 20;
             }
             rowAdvanceXSpace = 30;
             rowAdvanceYSpace += 4;
@@ -511,37 +405,24 @@ public class GameScreen implements Screen {
 
     @Override
     public void resize(int width, int height) {
-
-//        extendViewport.update(width, height, true);
-
         game.batch.setProjectionMatrix(camera.combined);
-
-
-
     }
 
     @Override
     public void pause() {
-
     }
 
     @Override
     public void resume() {
-
     }
 
     @Override
     public void hide() {
-
     }
 
     @Override
     public void dispose() {
-
         textureAtlas.dispose();
-//        ballImage.dispose();
-//        paddleImage.dispose();
-//        blueBrickImage.dispose();
 
         //dispose of all shapes in brick coordinate array
         for(int i = 0; i < brickCoordinateArray.length; i++) {
@@ -560,6 +441,5 @@ public class GameScreen implements Screen {
         ceilingShape.dispose();
 
         world.dispose();
-
     }
 }

@@ -19,11 +19,16 @@ import com.mygdx.breakout.utils.BreakoutContactListener;
 /* TODO
     Review physics values for balls, paddle, bricks
     attach user data to Paddle generation
-    Figure out why ball slows down with no friction
+    Add score
+    Add level
+    Add lives
  */
 
 public class GameScreen implements Screen {
     final Breakout game;
+
+    int minVelocity = 45;
+    int maxVelocity = 90;
 
     int gameViewWidth = 200;
     int gameViewHeight = 150;
@@ -91,7 +96,7 @@ public class GameScreen implements Screen {
         Box2D.init();
 
         world = new World(new Vector2(0, 0), true);
-        world.setContinuousPhysics(true);
+//        world.setContinuousPhysics(true);
         World.setVelocityThreshold(0);
         breakoutContactListener = new BreakoutContactListener();
         world.setContactListener(breakoutContactListener);
@@ -182,6 +187,8 @@ public class GameScreen implements Screen {
     @Override
     public void render(float delta) {
 
+//        System.out.println(ball.getBody().getLinearVelocity().toString());
+
         padBody.setLinearVelocity(0,0);
         if(!ball.isLaunched()) {
             ball.getBody().setLinearVelocity(0, 0);
@@ -208,10 +215,40 @@ public class GameScreen implements Screen {
 
         //check if ball went out of bounds and reset
         if(ball.getBody().getPosition().y < -10) {
-            System.out.println("BALL IS OUT OF BOUNDS. Current y =  " + ball.getBody().getPosition().y);
+//            System.out.println("BALL IS OUT OF BOUNDS. Current y =  " + ball.getBody().getPosition().y);
             ball.getBody().setLinearVelocity(0, 0);
             ball.setLaunched(false);
             ball.getBody().setTransform(pad.getX()+10, pad.getY()+6, ball.getBody().getAngle());
+        }
+
+        //enforce a max velocity on the ball
+        Vector2 currentBallVelocity = ball.getBody().getLinearVelocity();
+
+        if(ball.isLaunched()) {
+            if (currentBallVelocity.x > maxVelocity) {
+                ball.getBody().setLinearVelocity(new Vector2(maxVelocity, currentBallVelocity.y));
+            } else if (currentBallVelocity.x < -maxVelocity) {
+                ball.getBody().setLinearVelocity(new Vector2(-maxVelocity, currentBallVelocity.y));
+            }
+
+            if (currentBallVelocity.y > maxVelocity) {
+                ball.getBody().setLinearVelocity(new Vector2(currentBallVelocity.x, maxVelocity));
+            } else if (currentBallVelocity.y < -maxVelocity) {
+                ball.getBody().setLinearVelocity(new Vector2(currentBallVelocity.x, -maxVelocity));
+            }
+
+            //enforce a min velocity as well
+            if (currentBallVelocity.x < minVelocity && currentBallVelocity.x >= 0) {
+                ball.getBody().setLinearVelocity(new Vector2(minVelocity, currentBallVelocity.y));
+            } else if (currentBallVelocity.x > -minVelocity && currentBallVelocity.x <= 0) {
+                ball.getBody().setLinearVelocity(new Vector2(-minVelocity, currentBallVelocity.y));
+            }
+
+            if (currentBallVelocity.y < minVelocity && currentBallVelocity.y >= 0) {
+                ball.getBody().setLinearVelocity(new Vector2(currentBallVelocity.x, minVelocity));
+            } else if (currentBallVelocity.y > -minVelocity && currentBallVelocity.y <= 0) {
+                ball.getBody().setLinearVelocity(new Vector2(currentBallVelocity.x, -minVelocity));
+            }
         }
 
         world.step(Gdx.graphics.getDeltaTime(), 6, 2);
@@ -278,7 +315,7 @@ public class GameScreen implements Screen {
 
         game.batch.end();
 
-        debugRenderer.render(world, camera.combined);
+//        debugRenderer.render(world, camera.combined);
     }
 
 
@@ -363,7 +400,7 @@ public class GameScreen implements Screen {
 
         FixtureDef fixtureDef = new FixtureDef();
         fixtureDef.shape = padShape;
-        fixtureDef.density = 8f;
+        fixtureDef.density = 100f;
         fixtureDef.friction = 0f;
         fixtureDef.restitution = restitution;
 

@@ -27,13 +27,13 @@ import com.mygdx.breakout.utils.BreakoutContactListener;
 public class GameScreen implements Screen {
     final Breakout game;
 
-    int minVelocity = 45;
+    int minVelocity = 65;
     int maxVelocity = 90;
 
     int gameViewWidth = 200;
     int gameViewHeight = 150;
 
-    int paddleMoveSpeed = 50;
+    int paddleMoveSpeed = 70;
     float restitution = 0.45f;
 
     TextureAtlas textureAtlas;
@@ -54,6 +54,7 @@ public class GameScreen implements Screen {
     Array<Body> removables;
     Array<Contact> contacts;
     BreakoutContactListener breakoutContactListener;
+    private GameManager gameManager;
 
 
     Sprite pad;
@@ -78,6 +79,8 @@ public class GameScreen implements Screen {
 
     public GameScreen(Breakout game) {
         this.game = game;
+
+        gameManager = new GameManager(0, 3, 1);
 
         textureAtlas = new TextureAtlas("arkanoid_spritesheet.atlas");
         pad = textureAtlas.createSprite("paddle");
@@ -258,6 +261,7 @@ public class GameScreen implements Screen {
 
         for(Body removable : breakoutContactListener.removables) {
             world.destroyBody(removable);
+            gameManager.setScore(gameManager.getScore() + 100);
         }
 
         breakoutContactListener.removables.clear();
@@ -269,6 +273,8 @@ public class GameScreen implements Screen {
         camera.update();
 
         game.batch.begin();
+
+        game.font.draw(game.batch, "Score: " + gameManager.getScore(), 0, 150);
 
         //bricks
         for (int i = 0; i < brickCoordinateArray.length; i++) {

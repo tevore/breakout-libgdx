@@ -3,8 +3,10 @@ package com.mygdx.breakout;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.math.Vector2;
@@ -19,9 +21,12 @@ import com.mygdx.breakout.utils.BreakoutContactListener;
 /* TODO
     Review physics values for balls, paddle, bricks
     attach user data to Paddle generation
-    Add score
-    Add level
+    Add levels
     Add lives
+    create GameManager helper function ( check for game over )
+    create GameManager helper function ( check for end of level )
+    add level 2
+    make text appropriate sized
  */
 
 public class GameScreen implements Screen {
@@ -76,9 +81,15 @@ public class GameScreen implements Screen {
     Sprite ceiling;
     PolygonShape ceilingShape;
     Body ceilingBody;
+    private BitmapFont gameFont;
 
     public GameScreen(Breakout game) {
         this.game = game;
+
+        gameFont = new BitmapFont(Gdx.files.classpath("raw/font-title.fnt"));
+        gameFont.setColor(Color.PINK);
+        gameFont.getData().setScale(0.25f, 0.18f);
+
 
         levelManager = new LevelManager();
         levelManager.addLevels();
@@ -226,6 +237,8 @@ public class GameScreen implements Screen {
             ball.getBody().setLinearVelocity(0, 0);
             ball.setLaunched(false);
             ball.getBody().setTransform(pad.getX()+10, pad.getY()+6, ball.getBody().getAngle());
+            //go to GameManager helper function ( check for game over )
+            gameManager.setLives(gameManager.getLives() - 1);
         }
 
         //enforce a max velocity on the ball
@@ -278,7 +291,7 @@ public class GameScreen implements Screen {
 
         game.batch.begin();
 
-        game.font.draw(game.batch, "Score: " + gameManager.getScore(), 0, 150);
+        gameFont.draw(game.batch, "Score: " + gameManager.getScore(), 0, 150);
 
         //bricks
         for (int i = 0; i < brickCoordinateArray.length; i++) {
@@ -298,17 +311,17 @@ public class GameScreen implements Screen {
         rightWall.setSize(2, gameViewHeight);
         rightWall.setOriginCenter();
         rightWall.setPosition(rightWallBody.getPosition().x, rightWallBody.getPosition().y);
-        rightWall.draw(game.batch);
+//        rightWall.draw(game.batch);
 
         leftWall.setSize(2, gameViewHeight);
         leftWall.setOriginCenter();
         leftWall.setPosition(leftWallBody.getPosition().x, leftWallBody.getPosition().y);
-        leftWall.draw(game.batch);
+//        leftWall.draw(game.batch);
 
         ceiling.setSize(gameViewWidth, 2);
         ceiling.setOriginCenter();
         ceiling.setPosition(ceilingBody.getPosition().x, ceilingBody.getPosition().y);
-        ceiling.draw(game.batch);
+//        ceiling.draw(game.batch);
 
         //paddle
         pad.setSize(20, 5);

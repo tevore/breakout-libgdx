@@ -39,7 +39,7 @@ public class Level1 implements Level {
                 rowAdvanceXSpace += 20;
             }
             rowAdvanceXSpace = 30;
-            rowAdvanceYSpace += 4;
+            rowAdvanceYSpace += 5;
         }
 
 

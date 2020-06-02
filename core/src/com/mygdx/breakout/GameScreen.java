@@ -27,8 +27,8 @@ import com.mygdx.breakout.utils.BreakoutContactListener;
 public class GameScreen implements Screen {
     final Breakout game;
 
-    int minVelocity = 65;
-    int maxVelocity = 90;
+    int minVelocity = 25; //65
+    int maxVelocity = 50; //90
 
     int gameViewWidth = 200;
     int gameViewHeight = 150;
@@ -55,7 +55,7 @@ public class GameScreen implements Screen {
     Array<Contact> contacts;
     BreakoutContactListener breakoutContactListener;
     private GameManager gameManager;
-
+    private LevelManager levelManager;
 
     Sprite pad;
     PolygonShape padShape;
@@ -80,7 +80,9 @@ public class GameScreen implements Screen {
     public GameScreen(Breakout game) {
         this.game = game;
 
-        gameManager = new GameManager(0, 3, 1);
+        levelManager = new LevelManager();
+        levelManager.addLevels();
+        gameManager = new GameManager(0, 3, levelManager.getCurrentLevel());
 
         textureAtlas = new TextureAtlas("arkanoid_spritesheet.atlas");
         pad = textureAtlas.createSprite("paddle");
@@ -93,7 +95,7 @@ public class GameScreen implements Screen {
         //sets camera centered on width and height args
         camera.setToOrtho(false, gameViewWidth, gameViewHeight);
 
-        setupBricks();
+//        setupBricks();
 
         //set up a world for physics
         Box2D.init();
@@ -108,7 +110,9 @@ public class GameScreen implements Screen {
         setUpPaddle();
         setUpBall();
 
-        setupBrickPhysics();
+        levelManager.generateLevelDetails(textureAtlas, gameViewHeight, brickCoordinateArray, world);
+
+//        setupBrickPhysics();
 
         setUpBoundaries();
 
@@ -392,7 +396,7 @@ public class GameScreen implements Screen {
         pad.setPosition(50, 20);
 
         BodyDef padBodyDef = new BodyDef();
-        padBodyDef.type = BodyDef.BodyType.KinematicBody;
+        padBodyDef.type = BodyDef.BodyType.DynamicBody;
         //to not rotate around the axis
         padBodyDef.fixedRotation = true;
         //TODO review this positional code
@@ -422,7 +426,7 @@ public class GameScreen implements Screen {
 
 
 
-        //TODO make brick null if not created?
+
         for(int i = 0; i < brickCoordinateArray.length; i++) {
             for(int j = 0; j < brickCoordinateArray[0].length; j++) {
                 if((int)Math.round(Math.random()) == 1) {

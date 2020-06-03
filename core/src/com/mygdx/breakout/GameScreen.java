@@ -21,19 +21,19 @@ import com.mygdx.breakout.utils.BreakoutContactListener;
 /* TODO
     Review physics values for balls, paddle, bricks
     attach user data to Paddle generation
-    Add levels
-    Add lives
-    create GameManager helper function ( check for game over )
     create GameManager helper function ( check for end of level )
     add level 2
-    make text appropriate sized
+    Fix doubling score after gameOver
  */
 
 public class GameScreen implements Screen {
+
+    boolean gameOver;
+
     final Breakout game;
 
-    int minVelocity = 25; //65
-    int maxVelocity = 50; //90
+    int minVelocity = 50; //65
+    int maxVelocity = 75; //90
 
     int gameViewWidth = 200;
     int gameViewHeight = 150;
@@ -86,8 +86,10 @@ public class GameScreen implements Screen {
     public GameScreen(Breakout game) {
         this.game = game;
 
+        gameOver = false;
+
         gameFont = new BitmapFont(Gdx.files.classpath("raw/font-title.fnt"));
-        gameFont.setColor(Color.PINK);
+        gameFont.setColor(Color.WHITE);
         gameFont.getData().setScale(0.25f, 0.18f);
 
 
@@ -212,23 +214,31 @@ public class GameScreen implements Screen {
             ball.getBody().setLinearVelocity(0, 0);
         }
 
-        if (Gdx.input.isKeyPressed(Input.Keys.LEFT) ) {
-            padBody.setLinearVelocity(-paddleMoveSpeed, 0);
-            if(!ball.isLaunched()) {
-                ball.getBody().setLinearVelocity(-paddleMoveSpeed, 0.0f);
-            }
-        }
+        if (!gameOver) {
 
-        if (Gdx.input.isKeyPressed(Input.Keys.RIGHT)) {
-            padBody.setLinearVelocity(paddleMoveSpeed, 0);
-            if(!ball.isLaunched()) {
-                ball.getBody().setLinearVelocity(paddleMoveSpeed, 0.0f);
+            if (Gdx.input.isKeyPressed(Input.Keys.LEFT)) {
+                padBody.setLinearVelocity(-paddleMoveSpeed, 0);
+                if (!ball.isLaunched()) {
+                    ball.getBody().setLinearVelocity(-paddleMoveSpeed, 0.0f);
+                }
             }
-        }
 
-        if(Gdx.input.isKeyPressed(Input.Keys.SPACE) && !ball.isLaunched()) {
-            ball.getBody().applyLinearImpulse(new Vector2(padBody.getLinearVelocity().x, 200f), new Vector2(ball.getBody().getPosition().x, ball.getBody().getPosition().y), true);
-            ball.setLaunched(true);
+            if (Gdx.input.isKeyPressed(Input.Keys.RIGHT)) {
+                padBody.setLinearVelocity(paddleMoveSpeed, 0);
+                if (!ball.isLaunched()) {
+                    ball.getBody().setLinearVelocity(paddleMoveSpeed, 0.0f);
+                }
+            }
+
+            if (Gdx.input.isKeyPressed(Input.Keys.SPACE) && !ball.isLaunched()) {
+                ball.getBody().applyLinearImpulse(new Vector2(padBody.getLinearVelocity().x, 200f), new Vector2(ball.getBody().getPosition().x, ball.getBody().getPosition().y), true);
+                ball.setLaunched(true);
+            }
+        } else {
+            if(Gdx.input.isTouched()) {
+                resetGame();
+                gameOver = false;
+            }
         }
 
         //check if ball went out of bounds and reset
@@ -239,6 +249,9 @@ public class GameScreen implements Screen {
             ball.getBody().setTransform(pad.getX()+10, pad.getY()+6, ball.getBody().getAngle());
             //go to GameManager helper function ( check for game over )
             gameManager.setLives(gameManager.getLives() - 1);
+            if(gameManager.getLives() <= 0) {
+                gameOver = true;
+            }
         }
 
         //enforce a max velocity on the ball
@@ -292,6 +305,11 @@ public class GameScreen implements Screen {
         game.batch.begin();
 
         gameFont.draw(game.batch, "Score: " + gameManager.getScore(), 0, 150);
+        gameFont.draw(game.batch, "Lives: " + gameManager.getLives(), 150, 150);
+
+        if(gameOver) {
+            gameFont.draw(game.batch, "Game Over. Please press anywhere to try again!", 50, 120);
+        }
 
         //bricks
         for (int i = 0; i < brickCoordinateArray.length; i++) {
@@ -338,38 +356,31 @@ public class GameScreen implements Screen {
 
         game.batch.end();
 
-//        debugRenderer.render(world, camera.combined);
+        debugRenderer.render(world, camera.combined);
     }
 
+    private void resetGame() {
 
-    private void setupBrickPhysics() {
+                breakoutContactListener.removables.clear();
 
-          for(int i = 0; i < brickCoordinateArray.length; i++) {
-              for(int j = 0; j < brickCoordinateArray[0].length; j++) {
+                //dispose of all shapes in brick coordinate array
+                for(int i = 0; i < brickCoordinateArray.length; i++) {
+                    for(int j = 0; j < brickCoordinateArray[0].length; j++) {
+                        if(brickCoordinateArray[i][j].getShape() != null) {
+                            brickCoordinateArray[i][j].getShape().dispose();
+                        }
+                    }
+                }
 
-                  if(brickCoordinateArray[i][j].getBrickImage() != null) {
-                      BodyDef brickBodyDef = new BodyDef();
-                      brickBodyDef.type = BodyDef.BodyType.StaticBody;
-                      brickBodyDef.position.set(brickCoordinateArray[i][j].getXPos(), brickCoordinateArray[i][j].getYPos());
-                      Body brickBody = world.createBody(brickBodyDef);
-                      brickCoordinateArray[i][j].setBody(brickBody);
-                      brickBody.setUserData(brickCoordinateArray[i][j]);
+                brickCoordinateArray = null;
+                brickCoordinateArray = new Brick[8][8];
+                ball.setLaunched(false);
+                gameManager.setLives(3);
+                gameManager.setScore(0);
+                levelManager.generateLevelDetails(textureAtlas, gameViewHeight, brickCoordinateArray, world);
 
-                      PolygonShape brickShape = new PolygonShape();
-                      brickCoordinateArray[i][j].setShape(brickShape);
-                      brickShape.setAsBox(10, 2);
-
-                      FixtureDef fixtureDef = new FixtureDef();
-                      fixtureDef.shape = brickShape;
-                      fixtureDef.density = 30f;
-                      fixtureDef.friction = 0f;
-                      fixtureDef.restitution = 5f;
-
-                      brickBody.createFixture(fixtureDef);
-                  }
-              }
-          }
     }
+
 
     private void setUpBall() {
 
@@ -432,39 +443,6 @@ public class GameScreen implements Screen {
         padShape.dispose();
     }
 
-    private void setupBricks() {
-
-        float rowAdvanceXSpace = 30;
-        float rowAdvanceYSpace = gameViewHeight/2;
-
-
-
-
-        for(int i = 0; i < brickCoordinateArray.length; i++) {
-            for(int j = 0; j < brickCoordinateArray[0].length; j++) {
-                if((int)Math.round(Math.random()) == 1) {
-                    brickCoordinateArray[i][j] = new Brick(rowAdvanceXSpace, rowAdvanceYSpace,
-                            textureAtlas.createSprite("brick"), false);
-                } else {
-                    brickCoordinateArray[i][j] = new Brick(rowAdvanceXSpace, rowAdvanceYSpace, null, true);
-                }
-                rowAdvanceXSpace += 20;
-            }
-            rowAdvanceXSpace = 30;
-            rowAdvanceYSpace += 4;
-        }
-
-
-//                for(int i = 0; i < brickCoordinateArray.length; i++) {
-//            for(int j = 0; j < brickCoordinateArray[0].length; j++) {
-//                System.out.print(brickCoordinateArray[i][j].isDestroyed() + " ");
-//            }
-//            System.out.println("");
-//        }
-
-
-    }
-
     @Override
     public void resize(int width, int height) {
         game.batch.setProjectionMatrix(camera.combined);
@@ -489,7 +467,9 @@ public class GameScreen implements Screen {
         //dispose of all shapes in brick coordinate array
         for(int i = 0; i < brickCoordinateArray.length; i++) {
             for(int j = 0; j < brickCoordinateArray[0].length; j++) {
-                brickCoordinateArray[i][j].getShape().dispose();
+                if(brickCoordinateArray[i][j].getShape() != null) {
+                    brickCoordinateArray[i][j].getShape().dispose();
+                }
             }
         }
 

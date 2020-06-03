@@ -21,18 +21,17 @@ public class Level1 implements Level {
     @Override
     public void generateLevel(TextureAtlas atlas, float gameViewHeight, Brick[][] brickArray, World world) {
 
+
         //assign where bricks will be place
         float rowAdvanceXSpace = 30;
         float rowAdvanceYSpace = gameViewHeight/2;
-
-
 
 
         for(int i = 0; i < brickArray.length; i++) {
             for(int j = 0; j < brickArray[0].length; j++) {
 //                if((int)Math.round(Math.random()) == 1) {
                     brickArray[i][j] = new Brick(rowAdvanceXSpace, rowAdvanceYSpace,
-                            atlas.createSprite("brick"), false);
+                            atlas.createSprite("brick_extra"), false);
 //                } else {
 //                    brickArray[i][j] = new Brick(rowAdvanceXSpace, rowAdvanceYSpace, null, true);
 //                }

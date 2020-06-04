@@ -12,26 +12,42 @@ public class BreakoutContactListener implements ContactListener {
     public void beginContact(Contact contact) {
 
 
-                if (contact.getFixtureA().getBody().getUserData() != null) {
-                    Body contactedBody = contact.getFixtureA().getBody();
-                    if (contactedBody.getUserData().getClass().isAssignableFrom(Brick.class)) {
-                        Brick impactedBrick = (Brick) contactedBody.getUserData();
-                        impactedBrick.setDestroyed(true);
-                        removables.add(contactedBody);
-                    }
-                }
-
-
     }
 
     @Override
     public void endContact(Contact contact) {
 
+
+        if (contact.getFixtureA().getBody().getUserData() != null) {
+            Body contactedBody = contact.getFixtureA().getBody();
+            if (contactedBody.getUserData().getClass().isAssignableFrom(Brick.class)) {
+                Brick impactedBrick = (Brick) contactedBody.getUserData();
+//                System.out.println("Brick FixtureA@ : " + impactedBrick.getXPos() + " , " + impactedBrick.getYPos());
+                if(!impactedBrick.isDestroyed()) {
+                    impactedBrick.setDestroyed(true);
+                    if (!removables.contains(contactedBody, true)) {
+                        removables.add(contactedBody);
+                    }
+                }
+            }
+        } else if(contact.getFixtureB().getBody().getUserData() != null) {
+            Body contactedBody = contact.getFixtureB().getBody();
+            if (contactedBody.getUserData().getClass().isAssignableFrom(Brick.class)) {
+                Brick impactedBrick = (Brick) contactedBody.getUserData();
+//                System.out.println("Brick FixtureB@ : " + impactedBrick.getXPos() + " , " + impactedBrick.getYPos());
+                if(!impactedBrick.isDestroyed()) {
+                    impactedBrick.setDestroyed(true);
+                    if (!removables.contains(contactedBody, false)) {
+                        removables.add(contactedBody);
+                    }
+                }
+            }
+        }
+
     }
 
     @Override
     public void preSolve(Contact contact, Manifold oldManifold) {
-
     }
 
     @Override

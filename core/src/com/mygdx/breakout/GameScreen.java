@@ -22,8 +22,7 @@ import com.mygdx.breakout.utils.BreakoutContactListener;
     Review physics values for balls, paddle, bricks
     attach user data to Paddle generation
     create GameManager helper function ( check for end of level )
-    add level 2
-    Fix doubling score after gameOver
+    modify to have multiple screens?
  */
 
 public class GameScreen implements Screen {
@@ -283,16 +282,24 @@ public class GameScreen implements Screen {
                 ball.getBody().setLinearVelocity(new Vector2(currentBallVelocity.x, -minVelocity));
             }
         }
+//        contacts.addAll(world.getContactList());
+
+
+
+//        breakoutContactListener.removables.clear();
 
         world.step(Gdx.graphics.getDeltaTime(), 6, 2);
 
 
-        contacts.addAll(world.getContactList());
+//        contacts.addAll(world.getContactList());
 
         for(Body removable : breakoutContactListener.removables) {
+//            System.out.println("To remove: " + breakoutContactListener.removables.size);
             world.destroyBody(removable);
-            gameManager.setScore(gameManager.getScore() + 100);
+            int currentScore = gameManager.getScore();
+            gameManager.setScore(currentScore + 100);
         }
+
 
         breakoutContactListener.removables.clear();
 
@@ -360,25 +367,7 @@ public class GameScreen implements Screen {
     }
 
     private void resetGame() {
-
-                breakoutContactListener.removables.clear();
-
-                //dispose of all shapes in brick coordinate array
-                for(int i = 0; i < brickCoordinateArray.length; i++) {
-                    for(int j = 0; j < brickCoordinateArray[0].length; j++) {
-                        if(brickCoordinateArray[i][j].getShape() != null) {
-                            brickCoordinateArray[i][j].getShape().dispose();
-                        }
-                    }
-                }
-
-                brickCoordinateArray = null;
-                brickCoordinateArray = new Brick[8][8];
-                ball.setLaunched(false);
-                gameManager.setLives(3);
-                gameManager.setScore(0);
-                levelManager.generateLevelDetails(textureAtlas, gameViewHeight, brickCoordinateArray, world);
-
+              game.setScreen(new GameScreen(this.game));
     }
 
 
@@ -481,6 +470,7 @@ public class GameScreen implements Screen {
         leftWallShape.dispose();
         rightWallShape.dispose();
         ceilingShape.dispose();
+
 
         world.dispose();
     }

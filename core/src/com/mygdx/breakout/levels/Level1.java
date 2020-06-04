@@ -42,6 +42,8 @@ public class Level1 implements Level {
         }
 
 
+        int bodyCounter = 0;
+
         //craft the physics for those bricks
         for(int i = 0; i < brickArray.length; i++) {
             for(int j = 0; j < brickArray[0].length; j++) {
@@ -51,6 +53,7 @@ public class Level1 implements Level {
                     brickBodyDef.type = BodyDef.BodyType.StaticBody;
                     brickBodyDef.position.set(brickArray[i][j].getXPos(), brickArray[i][j].getYPos());
                     Body brickBody = world.createBody(brickBodyDef);
+                    bodyCounter++;
                     brickArray[i][j].setBody(brickBody);
                     brickBody.setUserData(brickArray[i][j]);
 
@@ -68,6 +71,8 @@ public class Level1 implements Level {
                 }
             }
         }
+
+//        System.out.println("Total bodies created: " + bodyCounter);
 
 
     }
